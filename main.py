@@ -358,7 +358,7 @@ def main():
         pdf.ln(7)
 
     # Create PDF filename
-    pdf_filename = "%s_MET %s_BBC WEATHERS.PDF" % (mil_time_met, mil_time_bbc)
+    pdf_filename = "%sMET_%sBBC_WEATHERS.PDF" % (mil_time_met, mil_time_bbc)
 
     # Sent file to output
     pdf.output(pdf_filename, 'F')
@@ -374,7 +374,7 @@ def main():
             (mil_time_met, mil_time_bbc)
 
     # Message body
-    body = "PLS FIND ATT %s_MET AND %s_BBC WEATHERS" % (mil_time_met, mil_time_bbc)
+    body = "PLS FIND ATT %sMET %sBBC WEATHERS" % (mil_time_met, mil_time_bbc)
 
     # Add body to email
     message.attach(MIMEText(body, "plain"))
