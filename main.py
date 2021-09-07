@@ -54,7 +54,7 @@ def main():
     met_data["valid"] = met_data_all[0].find("p").get_text()
     met_data["issued"] = met_data_all[6].find_all("p")[-1].get_text()
     met_data["list"] = [
-        { 
+        {
             "title": met_data_all[0].find_all("div")[-1].find("h2").get_text(),
             "body": met_data_all[0].find_all("div")[-1].find_all("p")[0].get_text(),
         }, {
@@ -90,8 +90,107 @@ def main():
         }
     ]
 
+    # Extract BBC data
+    bbc_data = dict()
+    bbc_data["title"] = bbc_soup.find("h1", {"class": "article-heading"}).get_text()
+    bbc_data_all_header = bbc_soup.find("div", {"id": "summary"})
+    bbc_data["synopsis"] = bbc_data_all_header.find("p", {"class": "synopsis-time"}).get_text().strip()
+    bbc_data["synopsis-text"] = bbc_data_all_header.find("p", {"class": "synopsis-text"}).get_text().strip()
+    bbc_data["issued"] = bbc_data_all_header.find("div", {"id": "sea-forecast-time"}).\
+        find_all("p")[0].get_text().replace('\n', ' ').strip()
+    bbc_data["valid"] = bbc_data_all_header.find("div", {"id": "sea-forecast-time"}).\
+        find_all("p")[-1].get_text().replace('\n', ' ').strip()
+    bbc_data_all = bbc_soup.find("div", {"id": "shipping-forecast-areas"})
+    bbc_data["list"] = [
+        {
+            "title": bbc_data_all.find("section", {"id": "sole"}).find("h2").get_text(),
+            "info": [
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[0].get_text(),
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[0].get_text(),
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[1].get_text(),
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[1].get_text(),
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[2].get_text(),
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[2].get_text(),
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[3].get_text(),
+                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[3].get_text()
+            ]
+        }, {
+            "title": bbc_data_all.find("section", {"id": "lundy"}).find("h2").get_text(),
+            "info": [
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[0].get_text(),
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[0].get_text(),
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[1].get_text(),
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[1].get_text(),
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[2].get_text(),
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[2].get_text(),
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[3].get_text(),
+                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[3].get_text()
+            ]
+        }, {
+            "title": bbc_data_all.find("section", {"id": "fastnet"}).find("h2").get_text(),
+            "info": [
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[0].get_text(),
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[0].get_text(),
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[1].get_text(),
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[1].get_text(),
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[2].get_text(),
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[2].get_text(),
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[3].get_text(),
+                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[3].get_text()
+            ]
+        }, {
+            "title": bbc_data_all.find("section", {"id": "irishsea"}).find("h2").get_text(),
+            "info": [
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[0].get_text(),
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[0].get_text(),
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[1].get_text(),
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[1].get_text(),
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[2].get_text(),
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[2].get_text(),
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[3].get_text(),
+                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[3].get_text()
+            ]
+        }, {
+            "title": bbc_data_all.find("section", {"id": "shannon"}).find("h2").get_text(),
+            "info": [
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[0].get_text(),
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[0].get_text(),
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[1].get_text(),
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[1].get_text(),
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[2].get_text(),
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[2].get_text(),
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[3].get_text(),
+                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[3].get_text()
+            ]
+        }, {
+            "title": bbc_data_all.find("section", {"id": "rockall"}).find("h2").get_text(),
+            "info": [
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[0].get_text(),
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[0].get_text(),
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[1].get_text(),
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[1].get_text(),
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[2].get_text(),
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[2].get_text(),
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[3].get_text(),
+                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[3].get_text()
+            ]
+        }, {
+            "title": bbc_data_all.find("section", {"id": "malin"}).find("h2").get_text(),
+            "info": [
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[0].get_text(),
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[0].get_text(),
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[1].get_text(),
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[1].get_text(),
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[2].get_text(),
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[2].get_text(),
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[3].get_text(),
+                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[3].get_text()
+            ]
+        }
+    ]
+
     import json
-    print(json.dumps(met_data, indent=4))
+    print(json.dumps(bbc_data, indent=4))
 
     return
 
@@ -115,7 +214,7 @@ def main():
         part = MIMEBase("application", "octet-stream")
         part.set_payload(attachment.read())
 
-    # Encode file in ASCII characters to send by email    
+    # Encode file in ASCII characters to sent by email
     encoders.encode_base64(part)
 
     # Add header as key/value pair to attachment part
@@ -136,7 +235,7 @@ def main():
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(SMTP_USER, SMTP_MAIL_TO, text)
 
-    print("Successfuly Send the mail")
+    print("Successfuly Sent the mail")
 
 if __name__ == '__main__':
     main()
