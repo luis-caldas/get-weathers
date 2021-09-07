@@ -4,8 +4,8 @@
 import os
 
 # Custom imports
-from PyPDF2 import PdfFileWriter
 from bs4 import BeautifulSoup
+from fpdf import FPDF
 import requests
 
 # Email imports
@@ -189,8 +189,103 @@ def main():
         }
     ]
 
-    import json
-    print(json.dumps(bbc_data, indent=4))
+    print("Extracted the information for the websites")
+
+    ### Create the full PDF document ###
+    # Create it
+    pdf = FPDF(orientation = 'P', unit = "mm", format="A4")
+    pdf.set_title("Met Eireann and BBC Weathers") # TODO add time
+    pdf.set_author("Robot")
+    pdf.set_creator("Automatic bot from https://github.com/luis-caldas/get-weathers")
+
+    # Add page
+    pdf.add_page()
+
+    # Add custom font
+    pdf.add_font("Etoile", "", "./fonts/IosevkaEtoile-Regular.ttf", uni=True)
+    pdf.add_font("Etoile", "B", "./fonts/IosevkaEtoile-Bold.ttf", uni=True)
+    pdf.add_font("Etoile", "I", "./fonts/IosevkaEtoile-Italic.ttf", uni=True)
+    pdf.add_font("Etoile", "BI", "./fonts/IosevkaEtoile-BoldItalic.ttf", uni=True)
+    pdf.set_font("Etoile")
+
+    ### Start writing
+    local_tab = ' ' * 8;
+
+    # BBC
+    pdf.set_font("", "I", 16)
+    pdf.write(10, "BBC Weathers")
+    pdf.ln()
+    pdf.set_font("", "I", 13)
+    pdf.write(5, bbc_data["title"])
+    pdf.ln(15)
+    pdf.set_font("", "IU", 10)
+    pdf.write(5, bbc_data["valid"])
+    pdf.ln()
+    pdf.set_font("", "I", 10)
+    pdf.write(5, bbc_data["issued"])
+    pdf.ln(15)
+    pdf.set_font("", "B", 13)
+    pdf.write(5, "The general synopsis")
+    pdf.ln(10)
+    pdf.set_font("", "", 10)
+    pdf.write(5, local_tab + bbc_data["synopsis-text"])
+    pdf.ln(20)
+
+    # Iterate list places
+    for item_index, each_place in enumerate(bbc_data["list"]):
+        pdf.set_font("", "BU", 12)
+        pdf.write(5, each_place["title"])
+        pdf.ln(10)
+        pdf.set_font("", "", 10)
+        # Iterate inside info
+        for index in range(int(len(each_place["info"]) / 2)):
+            pdf.write(5, "%s:" % each_place["info"][index * 2])
+            pdf.ln()
+            pdf.write(5, local_tab + each_place["info"][(index * 2) + 1])
+            pdf.ln()
+        pdf.ln(15)
+        # Break page if three items have been populated
+        if (item_index == 2):
+            pdf.add_page()
+
+    # Break page for MET
+    pdf.add_page()
+
+    # Start MET
+    pdf.set_font("", "I", 16)
+    pdf.write(10, "Met Éireann Weathers")
+    pdf.ln()
+    pdf.set_font("", "I", 13)
+    pdf.write(5, met_data["title"])
+    pdf.ln(15)
+    pdf.set_font("", "IU", 10)
+    pdf.write(5, met_data["valid"])
+    pdf.ln()
+    pdf.set_font("", "I", 10)
+    pdf.write(5, met_data["issued"])
+    pdf.ln(15)
+
+    # Iterate the items
+    for each_item in met_data["list"]:
+        pdf.set_font("", "BU", 12)
+        pdf.write(5, each_item["title"])
+        pdf.ln(8)
+        pdf.set_font("", "", 10)
+        # Check for body and write it
+        if "body" in each_item:
+            pdf.write(5, local_tab + each_item["body"])
+            pdf.ln()
+        # Iterate inside info if present
+        if "info" in each_item:
+            for each_entry in each_item["info"]:
+                pdf.write(5, local_tab + each_entry)
+                pdf.ln()
+        pdf.ln(7)
+
+    # Sent file to output
+    pdf.output("WEATHERS.PDF", 'F')
+
+    print("Created the document")
 
     return
 
@@ -208,7 +303,7 @@ def main():
     message.attach(MIMEText(body, "plain"))
 
     # Open PDF file in binary mode
-    with open("test.pdf", "rb") as attachment:
+    with open("WEATHERS.PDF", "rb") as attachment:
         # Add file as application/octet-stream
         # Email client can usually download this automatically as attachment
         part = MIMEBase("application", "octet-stream")
@@ -220,7 +315,7 @@ def main():
     # Add header as key/value pair to attachment part
     part.add_header(
         "Content-Disposition",
-        "attachment; filename= %s" % "weathers-INFO-DTC.pdf",
+        "attachment; filename= %s" % "WEATHERS.PDF", # TODO add DTG
     )
 
     # Add attachment to message and convert message to string
