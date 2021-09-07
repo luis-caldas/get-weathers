@@ -28,7 +28,8 @@ SMTP_MAIL_TO = os.environ.get('SMTP_MAIL_TO')
 WEBSITE_MET = "https://www.met.ie/forecasts/marine-inland-lakes/sea-area-forecast"
 WEBSITE_BBC = "https://www.metoffice.gov.uk/weather/specialist-forecasts/coast-and-sea/shipping-forecast"
 
-CACHE_FILE = "/tmp/weather-time-cache"
+CACHE_FILE_MET = "/tmp/weather-time-cache-met"
+CACHE_FILE_BBC = "/tmp/weather-time-cache-bbc"
 
 # Main function
 def main():
@@ -40,10 +41,10 @@ def main():
 
     # Check if pages were successful
     if (met_page.status_code != 200):
-        print ("Unable to fetch MET page")
+        print ("INFO", '-', "Unable to fetch MET page")
         return
     if (met_page.status_code != 200):
-        print ("Unable to fetch BBC page")
+        print ("INFO", '-', "Unable to fetch BBC page")
         return
 
     # Input pages to soup
@@ -193,7 +194,7 @@ def main():
         }
     ]
 
-    print("Extracted the information for the websites")
+    print("INFO", '-', "Extracted the information for the websites")
 
     ### Check times ###
     # Extract website times
@@ -212,7 +213,7 @@ def main():
             day=int(bbc_time.group(4)), year=int(bbc_time.group(6))
         )
     else:
-        print("ERROR", bbc_data["valid"])
+        print("ERROR", '-', bbc_data["valid"])
 
     if met_time:
         met_datetime_month = datetime.strptime(met_time.group(4), "%B")
@@ -221,34 +222,54 @@ def main():
             day=int(met_time.group(3)), year=int(met_time.group(5))
         )
     else:
-        print("ERROR", met_data["valid"])
+        print("ERROR", '-', met_data["valid"])
 
-    # Simplify name
-    datetime_now = bbc_datetime
+    # Check disparity between time
+    time_disparity_hours = abs(divmod((bbc_datetime - met_datetime).total_seconds(), 3600)[0])
+    if (time_disparity_hours > 3):
+        print("ERROR", '-', "Time disparity was too big")
+        return
 
     # Create the full military time
-    mil_time = datetime_now.strftime("%d%H%MZ%b%y").upper()
     mil_time_met = met_datetime.strftime("%d%H%MZ%b%y").upper()
+    mil_time_bbc = bbc_datetime.strftime("%d%H%MZ%b%y").upper()
+
+    # Truth table for updated times
+    updated_times = {
+        "met": True,
+        "bbc": True
+    }
 
     ### Cached runs ###
     # Check if we should run this time
-    # Times are stores and checked across
-    if os.path.isfile(CACHE_FILE):
-        with open(CACHE_FILE, "r") as cachefile:
-            mil_time_file = cachefile.read()
-            datetime_before = datetime.fromisoformat(mil_time_file)
-            print(datetime_before)
+    if os.path.isfile(CACHE_FILE_MET):
+        with open(CACHE_FILE_MET, "r") as cachefile:
+            met_time_file = cachefile.read()
+            datetime_before = datetime.fromisoformat(met_time_file)
             cachefile.close()
-
             # Check if we are a newer time
-            if (datetime_now <= datetime_before):
-                print("INFO", "Times are not updated yet")
-                return
+            if (met_datetime <= datetime_before):
+                print("WARNING", '-', "Met Eireann still hasnt updated the time")
+                updated_times["met"] = False
+
+    if os.path.isfile(CACHE_FILE_BBC):
+        with open(CACHE_FILE_BBC, "r") as cachefile:
+            bbc_time_file = cachefile.read()
+            datetime_before = datetime.fromisoformat(bbc_time_file)
+            cachefile.close()
+            # Check if we are a newer time
+            if (bbc_datetime <= datetime_before):
+                print("WARNING", '-', "BBC still hasnt updated the time")
+                updated_times["bbc"] = False
+
+    # Check truth table
+    if ((updated_times["met"] == False) or (updated_times["bbc"] == False)):
+        return
 
     ### Create the full PDF document ###
     # Create it
     pdf = FPDF(orientation = 'P', unit = "mm", format="A4")
-    pdf.set_title("Met Eireann and BBC Weathers @ %s" % mil_time)
+    pdf.set_title("Met Eireann @ %s & BBC Weathers @ %s" % (mil_time_met, mil_time_bbc))
     pdf.set_author("Robot")
     pdf.set_creator("Automatic bot from https://github.com/luis-caldas/get-weathers")
 
@@ -267,7 +288,7 @@ def main():
 
     # BBC
     pdf.set_font("", "I", 16)
-    pdf.write(10, "BBC Weathers @ %s" % mil_time)
+    pdf.write(10, "BBC Weathers @ %s" % mil_time_bbc)
     pdf.ln()
     pdf.set_font("", "I", 13)
     pdf.write(5, bbc_data["title"])
@@ -297,7 +318,7 @@ def main():
             pdf.ln()
             pdf.write(5, local_tab + each_place["info"][(index * 2) + 1])
             pdf.ln()
-        pdf.ln(15)
+        pdf.ln(10)
         # Break page if three items have been populated
         if (item_index == 2):
             pdf.add_page()
@@ -336,26 +357,30 @@ def main():
                 pdf.ln()
         pdf.ln(7)
 
-    # Sent file to output
-    pdf.output("%s-WEATHERS.PDF" % mil_time, 'F')
+    # Create PDF filename
+    pdf_filename = "%s_MET %s_BBC WEATHERS.PDF" % (mil_time_met, mil_time_bbc)
 
-    print("Created the document")
+    # Sent file to output
+    pdf.output(pdf_filename, 'F')
+
+    print("INFO", '-', "Created the document")
 
     ### Send email ###
     # Create a multipart message and set headers
     message = MIMEMultipart()
     message["From"] = SMTP_USER
     message["To"] = SMTP_MAIL_TO
-    message["Subject"] = "Met Eireann & BBC Weathers @ %s" % mil_time
+    message["Subject"] = "Met Eireann @ %s & BBC Weathers @ %s" % \
+            (mil_time_met, mil_time_bbc)
 
     # Message body
-    body = "PLS FIND ATT %s-WEATHERS" % mil_time
+    body = "PLS FIND ATT %s_MET AND %s_BBC WEATHERS" % (mil_time_met, mil_time_bbc)
 
     # Add body to email
     message.attach(MIMEText(body, "plain"))
 
     # Open PDF file in binary mode
-    with open("%s-WEATHERS.PDF" % mil_time, "rb") as attachment:
+    with open(pdf_filename, "rb") as attachment:
         # Add file as application/octet-stream
         # Email client can usually download this automatically as attachment
         part = MIMEBase("application", "octet-stream")
@@ -367,7 +392,7 @@ def main():
     # Add header as key/value pair to attachment part
     part.add_header(
         "Content-Disposition",
-        "attachment; filename= %s" % ("%s-WEATHERS.PDF" % mil_time),
+        "attachment; filename= %s" % pdf_filename,
     )
 
     # Add attachment to message and convert message to string
@@ -382,16 +407,19 @@ def main():
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(SMTP_USER, SMTP_MAIL_TO, text)
 
-    print("Successfuly Sent the mail")
+    print("INFO", '-', "Successfuly Sent the mail")
 
     # Remove old pdf weather
-    os.remove("%s-WEATHERS.PDF" % mil_time)
+    os.remove(pdf_filename)
 
-    print("Removed old PDF file")
+    print("INFO", '-', "Removed old PDF file")
 
     # Store the time last sent email
-    with open(CACHE_FILE, "w") as cachefile:
-        cachefile.write(datetime_now.isoformat())
+    with open(CACHE_FILE_MET, "w") as cachefile:
+        cachefile.write(met_datetime.isoformat())
+        cachefile.close()
+    with open(CACHE_FILE_BBC, "w") as cachefile:
+        cachefile.write(bbc_datetime.isoformat())
         cachefile.close()
 
 if __name__ == '__main__':
