@@ -2,6 +2,8 @@
 
 # Program imports
 import os
+import re
+from datetime import datetime
 
 # Custom imports
 from bs4 import BeautifulSoup
@@ -191,10 +193,41 @@ def main():
 
     print("Extracted the information for the websites")
 
+    ### Check times ###
+    # Extract website times
+    bbc_time = re.search("For the period ([0-2]\d:[0-5]\d) \(([^ ]*)\)", bbc_data["valid"])
+    met_time = re.search("Forecast valid from: ([0-2]\d:[0-5]\d), ", met_data["valid"])
+
+    # Initialize military times
+    bbc_mit_time = "0000"
+    met_mit_time = "0000"
+
+    # Military time fix
+    if bbc_time:
+        bbc_mit_time = ''.join(filter(str.isdigit, bbc_time[0]))
+    else:
+        print("ERROR", bbc_data["valid"])
+
+    if met_time:
+        met_mit_time = ''.join(filter(str.isdigit, met_time[0]))
+    else:
+        print("ERROR", met_data["valid"])
+
+    # Stop program if times are different
+    if (met_mit_time != bbc_mit_time):
+        print("ERROR", "Times differ from websites")
+        return
+
+    # Select the main weather
+    weather_time = met_mit_time
+
+    # Create the full military time
+    mil_time = datetime.utcnow().strftime("%%d%sZ%%b%%y" % weather_time).upper()
+
     ### Create the full PDF document ###
     # Create it
     pdf = FPDF(orientation = 'P', unit = "mm", format="A4")
-    pdf.set_title("Met Eireann and BBC Weathers") # TODO add time
+    pdf.set_title("Met Eireann and BBC Weathers @ %s" % mil_time)
     pdf.set_author("Robot")
     pdf.set_creator("Automatic bot from https://github.com/luis-caldas/get-weathers")
 
@@ -213,7 +246,7 @@ def main():
 
     # BBC
     pdf.set_font("", "I", 16)
-    pdf.write(10, "BBC Weathers")
+    pdf.write(10, "BBC Weathers @ %s" % mil_time)
     pdf.ln()
     pdf.set_font("", "I", 13)
     pdf.write(5, bbc_data["title"])
@@ -253,7 +286,7 @@ def main():
 
     # Start MET
     pdf.set_font("", "I", 16)
-    pdf.write(10, "Met Éireann Weathers")
+    pdf.write(10, "Met Éireann Weathers @ %s" % mil_time)
     pdf.ln()
     pdf.set_font("", "I", 13)
     pdf.write(5, met_data["title"])
@@ -283,27 +316,25 @@ def main():
         pdf.ln(7)
 
     # Sent file to output
-    pdf.output("WEATHERS.PDF", 'F')
+    pdf.output("%s-WEATHERS.PDF" % mil_time, 'F')
 
     print("Created the document")
-
-    return
 
     ### Send email ###
     # Create a multipart message and set headers
     message = MIMEMultipart()
     message["From"] = SMTP_USER
     message["To"] = SMTP_MAIL_TO
-    message["Subject"] = "MET + BBC Weathers"
+    message["Subject"] = "Met Eireann & BBC Weathers @ %s" % mil_time
 
     # Message body
-    body = "PLS FIND ATT WEATHERS X2"
+    body = "PLS FIND ATT %s-WEATHERS" % mil_time
 
     # Add body to email
     message.attach(MIMEText(body, "plain"))
 
     # Open PDF file in binary mode
-    with open("WEATHERS.PDF", "rb") as attachment:
+    with open("%s-WEATHERS.PDF" % mil_time, "rb") as attachment:
         # Add file as application/octet-stream
         # Email client can usually download this automatically as attachment
         part = MIMEBase("application", "octet-stream")
@@ -315,7 +346,7 @@ def main():
     # Add header as key/value pair to attachment part
     part.add_header(
         "Content-Disposition",
-        "attachment; filename= %s" % "WEATHERS.PDF", # TODO add DTG
+        "attachment; filename= %s" % ("%s-WEATHERS.PDF" % mil_time),
     )
 
     # Add attachment to message and convert message to string
@@ -331,6 +362,11 @@ def main():
         server.sendmail(SMTP_USER, SMTP_MAIL_TO, text)
 
     print("Successfuly Sent the mail")
+
+    # Remove old pdf weather
+    os.remove("%s-WEATHERS.PDF" % mil_time)
+
+    print("Removed old PDF file")
 
 if __name__ == '__main__':
     main()
