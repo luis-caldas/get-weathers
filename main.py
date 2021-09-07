@@ -28,6 +28,8 @@ SMTP_MAIL_TO = os.environ.get('SMTP_MAIL_TO')
 WEBSITE_MET = "https://www.met.ie/forecasts/marine-inland-lakes/sea-area-forecast"
 WEBSITE_BBC = "https://www.metoffice.gov.uk/weather/specialist-forecasts/coast-and-sea/shipping-forecast"
 
+CACHE_FILE = "/tmp/weather-time-cache"
+
 # Main function
 def main():
 
@@ -195,34 +197,53 @@ def main():
 
     ### Check times ###
     # Extract website times
-    bbc_time = re.search("For the period ([0-2]\d:[0-5]\d) \(([^ ]*)\)", bbc_data["valid"])
-    met_time = re.search("Forecast valid from: ([0-2]\d:[0-5]\d), ", met_data["valid"])
+    bbc_time = re.search(\
+            "For the period ([0-2]\d):([0-5]\d) \(([^ ]*)\) on [^ ]+ (\d+) ([a-zA-Z]{3}) (\d{4}) to", \
+            bbc_data["valid"])
+    met_time = re.search(\
+            "Forecast valid from: ([0-2]\d):([0-5]\d), [^ ]+ (\d+) ([^ ]+) (\d+) until", \
+            met_data["valid"])
 
-    # Initialize military times
-    bbc_mit_time = "0000"
-    met_mit_time = "0000"
-
-    # Military time fix
+    # Digest all times
     if bbc_time:
-        bbc_mit_time = ''.join(filter(str.isdigit, bbc_time[0]))
+        bbc_datetime_month = datetime.strptime(bbc_time.group(5), "%b")
+        bbc_datetime = bbc_datetime_month.replace(
+            hour=int(bbc_time.group(1)), minute=int(bbc_time.group(2)),
+            day=int(bbc_time.group(4)), year=int(bbc_time.group(6))
+        )
     else:
         print("ERROR", bbc_data["valid"])
 
     if met_time:
-        met_mit_time = ''.join(filter(str.isdigit, met_time[0]))
+        met_datetime_month = datetime.strptime(met_time.group(4), "%B")
+        met_datetime = met_datetime_month.replace(
+            hour=int(met_time.group(1)), minute=int(met_time.group(2)),
+            day=int(met_time.group(3)), year=int(met_time.group(5))
+        )
     else:
         print("ERROR", met_data["valid"])
 
-    # Stop program if times are different
-    if (met_mit_time != bbc_mit_time):
-        print("ERROR", "Times differ from websites")
-        return
-
-    # Select the main weather
-    weather_time = met_mit_time
+    # Simplify name
+    datetime_now = bbc_datetime
 
     # Create the full military time
-    mil_time = datetime.utcnow().strftime("%%d%sZ%%b%%y" % weather_time).upper()
+    mil_time = datetime_now.strftime("%d%H%MZ%b%y").upper()
+    mil_time_met = met_datetime.strftime("%d%H%MZ%b%y").upper()
+
+    ### Cached runs ###
+    # Check if we should run this time
+    # Times are stores and checked across
+    if os.path.isfile(CACHE_FILE):
+        with open(CACHE_FILE, "r") as cachefile:
+            mil_time_file = cachefile.read()
+            datetime_before = datetime.fromisoformat(mil_time_file)
+            print(datetime_before)
+            cachefile.close()
+
+            # Check if we are a newer time
+            if (datetime_now <= datetime_before):
+                print("INFO", "Times are not updated yet")
+                return
 
     ### Create the full PDF document ###
     # Create it
@@ -286,7 +307,7 @@ def main():
 
     # Start MET
     pdf.set_font("", "I", 16)
-    pdf.write(10, "Met Éireann Weathers @ %s" % mil_time)
+    pdf.write(10, "Met Éireann Weathers @ %s" % mil_time_met)
     pdf.ln()
     pdf.set_font("", "I", 13)
     pdf.write(5, met_data["title"])
@@ -367,6 +388,11 @@ def main():
     os.remove("%s-WEATHERS.PDF" % mil_time)
 
     print("Removed old PDF file")
+
+    # Store the time last sent email
+    with open(CACHE_FILE, "w") as cachefile:
+        cachefile.write(datetime_now.isoformat())
+        cachefile.close()
 
 if __name__ == '__main__':
     main()
