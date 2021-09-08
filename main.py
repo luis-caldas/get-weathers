@@ -73,7 +73,7 @@ def main():
         { "title": each_block.find("h2").get_text(),
           "info": [ each_paragraph.get_text() for each_paragraph in each_block.find_all("p") ]
           } for each_block in met_data_all[3:-2]
-        ] + [
+    ] + [
         {
             "title": met_data_all[-2].find("h2").get_text(),
             "body": met_data_all[-2].find_all("p")[0].get_text().strip(" \n")
@@ -92,13 +92,12 @@ def main():
         find_all("p")[-1].get_text().replace('\n', ' ').strip()
     bbc_data_all = bbc_soup.find("div", {"id": "shipping-forecast-areas"})
     bbc_data["list"] = [
-         { "title": bbc_data_all.find("section", {"id": "sole"}).find("h2").get_text(),
+            { "title": bbc_data_all.find("section", {"id": each_area_out}).find("h2").get_text(),
            "info": [ value for pair in zip(
                         [ individual_entry.get_text() for individual_entry in each_entry.find_all("dt") ],
                         [ individual_entry.get_text() for individual_entry in each_entry.find_all("dd") ]
                     ) for value in pair ]
-           } for each_entry in [ bbc_data_all.find("section", {"id": each_area}) \
-                   for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin"] ]
+           } for (each_entry, each_area_out) in [ (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin"] ]
     ]
 
     print("INFO", '-', "Extracted the information for the websites")
@@ -220,11 +219,13 @@ def main():
         pdf.ln(10)
         pdf.set_font("", "", 10)
         # Iterate inside info
-        for index in range(int(len(each_place["info"]) / 2)):
-            pdf.write(5, "%s:" % each_place["info"][index * 2])
-            pdf.ln()
-            pdf.write(5, local_tab + each_place["info"][(index * 2) + 1])
-            pdf.ln()
+        for index, item in enumerate(each_place["info"]):
+            if (index % 2 == 0):
+                pdf.write(5, "%s:" % item)
+                pdf.ln()
+            else:
+                pdf.write(5, local_tab + item)
+                pdf.ln()
         pdf.ln(10)
         # Break page if three items have been populated
         if (item_index == 2):
