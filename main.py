@@ -92,91 +92,13 @@ def main():
         find_all("p")[-1].get_text().replace('\n', ' ').strip()
     bbc_data_all = bbc_soup.find("div", {"id": "shipping-forecast-areas"})
     bbc_data["list"] = [
-        {
-            "title": bbc_data_all.find("section", {"id": "sole"}).find("h2").get_text(),
-            "info": [
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[0].get_text(),
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[0].get_text(),
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[1].get_text(),
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[1].get_text(),
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[2].get_text(),
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[2].get_text(),
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dt")[3].get_text(),
-                bbc_data_all.find("section", {"id": "sole"}).find_all("dd")[3].get_text()
-            ]
-        }, {
-            "title": bbc_data_all.find("section", {"id": "lundy"}).find("h2").get_text(),
-            "info": [
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[0].get_text(),
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[0].get_text(),
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[1].get_text(),
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[1].get_text(),
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[2].get_text(),
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[2].get_text(),
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dt")[3].get_text(),
-                bbc_data_all.find("section", {"id": "lundy"}).find_all("dd")[3].get_text()
-            ]
-        }, {
-            "title": bbc_data_all.find("section", {"id": "fastnet"}).find("h2").get_text(),
-            "info": [
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[0].get_text(),
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[0].get_text(),
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[1].get_text(),
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[1].get_text(),
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[2].get_text(),
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[2].get_text(),
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dt")[3].get_text(),
-                bbc_data_all.find("section", {"id": "fastnet"}).find_all("dd")[3].get_text()
-            ]
-        }, {
-            "title": bbc_data_all.find("section", {"id": "irishsea"}).find("h2").get_text(),
-            "info": [
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[0].get_text(),
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[0].get_text(),
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[1].get_text(),
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[1].get_text(),
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[2].get_text(),
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[2].get_text(),
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dt")[3].get_text(),
-                bbc_data_all.find("section", {"id": "irishsea"}).find_all("dd")[3].get_text()
-            ]
-        }, {
-            "title": bbc_data_all.find("section", {"id": "shannon"}).find("h2").get_text(),
-            "info": [
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[0].get_text(),
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[0].get_text(),
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[1].get_text(),
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[1].get_text(),
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[2].get_text(),
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[2].get_text(),
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dt")[3].get_text(),
-                bbc_data_all.find("section", {"id": "shannon"}).find_all("dd")[3].get_text()
-            ]
-        }, {
-            "title": bbc_data_all.find("section", {"id": "rockall"}).find("h2").get_text(),
-            "info": [
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[0].get_text(),
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[0].get_text(),
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[1].get_text(),
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[1].get_text(),
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[2].get_text(),
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[2].get_text(),
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dt")[3].get_text(),
-                bbc_data_all.find("section", {"id": "rockall"}).find_all("dd")[3].get_text()
-            ]
-        }, {
-            "title": bbc_data_all.find("section", {"id": "malin"}).find("h2").get_text(),
-            "info": [
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[0].get_text(),
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[0].get_text(),
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[1].get_text(),
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[1].get_text(),
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[2].get_text(),
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[2].get_text(),
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dt")[3].get_text(),
-                bbc_data_all.find("section", {"id": "malin"}).find_all("dd")[3].get_text()
-            ]
-        }
+         { "title": bbc_data_all.find("section", {"id": "sole"}).find("h2").get_text(),
+           "info": [ value for pair in zip(
+                        [ individual_entry.get_text() for individual_entry in each_entry.find_all("dt") ],
+                        [ individual_entry.get_text() for individual_entry in each_entry.find_all("dd") ]
+                    ) for value in pair ]
+           } for each_entry in [ bbc_data_all.find("section", {"id": each_area}) \
+                   for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin"] ]
     ]
 
     print("INFO", '-', "Extracted the information for the websites")
