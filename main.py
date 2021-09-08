@@ -68,30 +68,15 @@ def main():
             "info": [
                 met_data_all[0].find_all("p")[-2].get_text()
             ]
-        }, {
-            "title": met_data_all[3].find("h2").get_text(),
-            "info": [
-                met_data_all[3].find_all("p")[0].get_text(),
-                met_data_all[3].find_all("p")[1].get_text(),
-                met_data_all[3].find_all("p")[2].get_text()
-            ]
-        }, {
-            "title": met_data_all[4].find("h2").get_text(),
-            "info": [
-                met_data_all[4].find_all("p")[0].get_text(),
-                met_data_all[4].find_all("p")[1].get_text(),
-                met_data_all[4].find_all("p")[2].get_text()
-            ]
-        }, {
-            "title": met_data_all[5].find("h2").get_text(),
-            "info": [
-                met_data_all[5].find_all("p")[0].get_text(),
-                met_data_all[5].find_all("p")[1].get_text(),
-                met_data_all[5].find_all("p")[2].get_text()
-            ]
-        }, {
-            "title": met_data_all[6].find("h2").get_text(),
-            "body": met_data_all[6].find_all("p")[0].get_text().strip(" \n")
+        }
+    ] + [
+        { "title": each_block.find("h2").get_text(),
+          "info": [ each_paragraph.get_text() for each_paragraph in each_block.find_all("p") ]
+          } for each_block in met_data_all[3:-2]
+        ] + [
+        {
+            "title": met_data_all[-2].find("h2").get_text(),
+            "body": met_data_all[-2].find_all("p")[0].get_text().strip(" \n")
         }
     ]
 
