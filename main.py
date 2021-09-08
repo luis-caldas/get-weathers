@@ -210,7 +210,7 @@ def main():
     pdf.ln(10)
     pdf.set_font("", "", 10)
     pdf.write(5, local_tab + bbc_data["synopsis-text"])
-    pdf.ln(20)
+    pdf.ln(15)
 
     # Iterate list places
     for item_index, each_place in enumerate(bbc_data["list"]):
@@ -250,7 +250,7 @@ def main():
 
     # Iterate the items
     for each_item in met_data["list"]:
-        pdf.set_font("", "BU", 12)
+        pdf.set_font("", "B", 12)
         pdf.write(5, each_item["title"])
         pdf.ln(8)
         pdf.set_font("", "", 10)
