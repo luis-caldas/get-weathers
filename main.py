@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Custom imports
 from bs4 import BeautifulSoup
-from fpdf import FPDF
+from fpdf import FPDF, php
 import requests
 
 # Email imports
@@ -173,20 +173,74 @@ def main():
     ### Create the full PDF document ###
 
     # Create a new footer method
-    #class PDF(FPDF):
-    #    def footer(self):
-    #        self.set_y(-15)
-    #        self.set_font("", "I", 8)
-    #        self.cell(0, 10, 'Page %s' % self.page_no(), 0, 0, 'C')
+    class PDF(FPDF):
+
+        # Init with custom variables for page grouping
+        def __init__(self, *args, **kwargs):
+            FPDF.__init__(self, *args, **kwargs)
+            self.new_page_group = False
+            self.page_groups = dict()
+            self.curr_page_group = None
+
+        def start_page_group(self):
+            self.new_page_group = True
+
+        # Return page number for group
+        def group_page_no(self):
+            return self.page_groups[self.curr_page_group]
+
+        def page_group_alias(self):
+            return self.curr_page_group
+
+        # Overwrite the begin page function with custom one
+        # that uses page groups
+        def _beginpage(self, *args, **kwargs):
+
+            FPDF._beginpage(self, *args, **kwargs)
+
+            if self.new_page_group:
+                group_size = len(self.page_groups) + 1
+                alias_figure = "{{{nb%d}}}" % group_size
+                self.page_groups[alias_figure] = 1
+                self.curr_page_group = alias_figure
+                self.new_page_group = False
+            elif self.curr_page_group:
+                self.page_groups[self.curr_page_group] += 1
+
+        # Overwrite putpages function
+        def _putpages(self, *args, **kwargs):
+
+            nb = self.page
+
+            if self.page_groups:
+                for each_key in self.page_groups:
+                    for each_index in range(1, nb + 1):
+                        self.pages[each_index] = \
+                            self.pages[each_index].replace(
+                                self._escape(php.UTF8ToUTF16BE(each_key, False)),
+                                self._escape(php.UTF8ToUTF16BE(str(self.page_groups[each_key]), False))
+                             )
+
+            FPDF._putpages(self, *args, **kwargs)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font("", "I", 8)
+            self.cell(
+                    0, 10,
+                "Page %s of %s" % (self.group_page_no(), self.page_group_alias()),
+                0, 0, 'C'
+            )
 
     # Create it
-    pdf = FPDF(orientation = 'P', unit = "mm", format="A4")
+    pdf = PDF(orientation = 'P', unit = "mm", format="A4")
     pdf.set_margins(20, 10, 10)
     pdf.set_title("Met Eireann @ %s & BBC Weathers @ %s" % (mil_time_met, mil_time_bbc))
     pdf.set_author("Robot")
     pdf.set_creator("Automatic bot from https://github.com/luis-caldas/get-weathers")
 
     # Add page
+    pdf.start_page_group()
     pdf.add_page()
 
     # Add custom font
@@ -239,6 +293,7 @@ def main():
             pdf.add_page()
 
     # Break page for MET
+    pdf.start_page_group()
     pdf.add_page()
 
     # Start MET
@@ -271,9 +326,6 @@ def main():
                 pdf.write(5, local_tab + each_entry)
                 pdf.ln()
         pdf.ln(7)
-
-    # Get total number of pages
-    pdf.alias_nb_pages()
 
     # Create PDF filename
     pdf_filename = "%sMET_%sBBC_WEATHERS.PDF" % (mil_time_met, mil_time_bbc)
