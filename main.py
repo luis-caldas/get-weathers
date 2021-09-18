@@ -171,8 +171,17 @@ def main():
         return
 
     ### Create the full PDF document ###
+
+    # Create a new footer method
+    #class PDF(FPDF):
+    #    def footer(self):
+    #        self.set_y(-15)
+    #        self.set_font("", "I", 8)
+    #        self.cell(0, 10, 'Page %s' % self.page_no(), 0, 0, 'C')
+
     # Create it
     pdf = FPDF(orientation = 'P', unit = "mm", format="A4")
+    pdf.set_margins(20, 10, 10)
     pdf.set_title("Met Eireann @ %s & BBC Weathers @ %s" % (mil_time_met, mil_time_bbc))
     pdf.set_author("Robot")
     pdf.set_creator("Automatic bot from https://github.com/luis-caldas/get-weathers")
@@ -262,6 +271,9 @@ def main():
                 pdf.write(5, local_tab + each_entry)
                 pdf.ln()
         pdf.ln(7)
+
+    # Get total number of pages
+    pdf.alias_nb_pages()
 
     # Create PDF filename
     pdf_filename = "%sMET_%sBBC_WEATHERS.PDF" % (mil_time_met, mil_time_bbc)
