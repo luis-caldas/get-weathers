@@ -227,7 +227,7 @@ def main():
             self.set_y(-15)
             self.set_font("", "I", 8)
             self.cell(
-                    0, 10,
+                0, 10,
                 "Page %s of %s" % (self.group_page_no(), self.page_group_alias()),
                 0, 0, 'C'
             )
