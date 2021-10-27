@@ -31,6 +31,15 @@ WEBSITE_BBC = "https://www.metoffice.gov.uk/weather/specialist-forecasts/coast-a
 CACHE_FILE_MET = "/tmp/weather-time-cache-met"
 CACHE_FILE_BBC = "/tmp/weather-time-cache-bbc"
 
+# New printing function with timestamps
+def printn(label, message):
+    time_now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    print("[%s] [%s] %s" % (
+        time_now,
+        label,
+        message
+    ))
+
 # Main function
 def main():
 
@@ -41,10 +50,10 @@ def main():
 
     # Check if pages were successful
     if (met_page.status_code != 200):
-        print ("INFO", '-', "Unable to fetch MET page")
+        printn ("INFO", "Unable to fetch MET page")
         return
     if (met_page.status_code != 200):
-        print ("INFO", '-', "Unable to fetch BBC page")
+        printn ("INFO", "Unable to fetch BBC page")
         return
 
     # Input pages to soup
@@ -98,7 +107,7 @@ def main():
            } for (each_entry, each_area_out) in [ (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin"] ]
     ]
 
-    print("INFO", '-', "Extracted the information for the websites")
+    printn ("INFO", "Extracted the information for the websites")
 
     ### Check times ###
     # Extract website times
@@ -117,7 +126,7 @@ def main():
             day=int(bbc_time.group(4)), year=int(bbc_time.group(6))
         )
     else:
-        print("ERROR", '-', bbc_data["valid"])
+        printn ("ERROR", bbc_data["valid"])
 
     if met_time:
         met_datetime_month = datetime.strptime(met_time.group(4), "%B")
@@ -126,12 +135,12 @@ def main():
             day=int(met_time.group(3)), year=int(met_time.group(5))
         )
     else:
-        print("ERROR", '-', met_data["valid"])
+        printn ("ERROR", met_data["valid"])
 
     # Check disparity between time
     time_disparity_hours = abs(divmod((bbc_datetime - met_datetime).total_seconds(), 3600)[0])
     if (time_disparity_hours > 3):
-        print("ERROR", '-', "Time disparity was too big")
+        printn ("ERROR", "Time disparity was too big")
         return
 
     # Create the full military time
@@ -153,7 +162,7 @@ def main():
             cachefile.close()
             # Check if we are a newer time
             if (met_datetime <= datetime_before):
-                print("WARNING", '-', "Met Eireann still hasnt updated the time")
+                printn ("WARNING", "Met Eireann still hasnt updated the time")
                 updated_times["met"] = False
 
     if os.path.isfile(CACHE_FILE_BBC):
@@ -163,7 +172,7 @@ def main():
             cachefile.close()
             # Check if we are a newer time
             if (bbc_datetime <= datetime_before):
-                print("WARNING", '-', "BBC still hasnt updated the time")
+                printn ("WARNING", "BBC still hasnt updated the time")
                 updated_times["bbc"] = False
 
     # Check truth table
@@ -333,7 +342,7 @@ def main():
     # Sent file to output
     pdf.output(pdf_filename, 'F')
 
-    print("INFO", '-', "Created the document")
+    printn ("INFO", "Created the document")
 
     ### Send email ###
     # Create a multipart message and set headers
@@ -377,12 +386,12 @@ def main():
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(SMTP_USER, SMTP_MAIL_TO, text)
 
-    print("INFO", '-', "Successfuly Sent the mail")
+    printn ("INFO", "Successfuly Sent the mail")
 
     # Remove old pdf weather
     os.remove(pdf_filename)
 
-    print("INFO", '-', "Removed old PDF file")
+    printn ("INFO", "Removed old PDF file")
 
     # Store the time last sent email
     with open(CACHE_FILE_MET, "w") as cachefile:
