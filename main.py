@@ -141,6 +141,8 @@ def main():
     time_disparity_hours = abs(divmod((bbc_datetime - met_datetime).total_seconds(), 3600)[0])
     if (time_disparity_hours > 3):
         printn ("ERROR", "Time disparity was too big")
+        printn ("INFO", "MET Time is %s" % met_datetime.strftime("%d%H%MZ%b%y"))
+        printn ("INFO", "BBC Time is %s" % bbc_datetime.strftime("%d%H%MZ%b%y"))
         return
 
     # Create the full military time
