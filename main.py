@@ -3,6 +3,7 @@
 # Program imports
 import os
 import re
+from copy import deepcopy
 from datetime import datetime
 
 # Custom imports
@@ -261,90 +262,144 @@ def main():
     pdf.add_font("Etoile", "BI", "./fonts/IosevkaEtoile-BoldItalic.ttf", uni=True)
     pdf.set_font("Etoile")
 
+    # Create two PDFs for both documents
+    bbc_pdf = deepcopy(pdf)
+    met_pdf = deepcopy(pdf)
+
     ### Start writing
     local_tab = ' ' * 8;
 
     # BBC
-    pdf.set_font("", "I", 16)
-    pdf.write(10, "BBC Weathers @ %s" % mil_time_bbc)
-    pdf.ln()
-    pdf.set_font("", "I", 13)
-    pdf.write(5, bbc_data["title"])
-    pdf.ln(15)
-    pdf.set_font("", "IU", 10)
-    pdf.write(5, bbc_data["valid"])
-    pdf.ln()
-    pdf.set_font("", "I", 10)
-    pdf.write(5, bbc_data["issued"])
-    pdf.ln(15)
-    pdf.set_font("", "B", 13)
-    pdf.write(5, "The general synopsis")
-    pdf.ln(10)
-    pdf.set_font("", "", 10)
-    pdf.write(5, local_tab + bbc_data["synopsis-text"])
-    pdf.ln(15)
+    bbc_pdf.set_font("", "I", 16)
+    bbc_pdf.write(10, "BBC Weathers @ %s" % mil_time_bbc)
+    bbc_pdf.ln()
+    bbc_pdf.set_font("", "I", 13)
+    bbc_pdf.write(5, bbc_data["title"])
+    bbc_pdf.ln(15)
+    bbc_pdf.set_font("", "IU", 10)
+    bbc_pdf.write(5, bbc_data["valid"])
+    bbc_pdf.ln()
+    bbc_pdf.set_font("", "I", 10)
+    bbc_pdf.write(5, bbc_data["issued"])
+    bbc_pdf.ln(15)
+    bbc_pdf.set_font("", "B", 13)
+    bbc_pdf.write(5, "The general synopsis")
+    bbc_pdf.ln(10)
+    bbc_pdf.set_font("", "", 10)
+    bbc_pdf.write(5, local_tab + bbc_data["synopsis-text"])
+    bbc_pdf.ln(15)
 
     # Iterate list places
     for item_index, each_place in enumerate(bbc_data["list"]):
-        pdf.set_font("", "BU", 12)
-        pdf.write(5, each_place["title"])
-        pdf.ln(10)
-        pdf.set_font("", "", 10)
-        # Iterate inside info
-        for index, item in enumerate(each_place["info"]):
-            if (index % 2 == 0):
-                pdf.write(5, "%s:" % item)
-                pdf.ln()
-            else:
-                pdf.write(5, local_tab + item)
-                pdf.ln()
-        pdf.ln(10)
-        # Break page if three items have been populated
-        if (item_index == 2):
-            pdf.add_page()
 
-    # Break page for MET
-    pdf.start_page_group()
-    pdf.add_page()
+        # Create full copy of current document to experiment
+        experiment_copy = deepcopy(bbc_pdf)
+
+        # Keep doing until we have it at the right spot
+        effective_run = False
+        while True:
+
+            # Save page to check if we broke page
+            page_now = bbc_pdf.page_no()
+
+            # Determine which document should be changed
+            doc = bbc_pdf if effective_run else experiment_copy
+
+            doc.set_font("", "BU", 12)
+            doc.write(5, each_place["title"])
+            doc.ln(10)
+            doc.set_font("", "", 10)
+
+            # Iterate inside info
+            for index, item in enumerate(each_place["info"]):
+                if (index % 2 == 0):
+                    doc.write(5, "%s:" % item)
+                    doc.ln()
+                else:
+                    doc.write(5, local_tab + item)
+                    doc.ln()
+
+            # Check if we broke page
+            if page_now == doc.page_no():
+                # If not we can continue the loop
+                doc.ln(10)
+                bbc_pdf = doc
+                break
+
+            else:
+                # If it overflew return and add page
+                printn("PDF", "Overflow found rebuilding the block")
+                effective_run = True
+                bbc_pdf.add_page()
 
     # Start MET
-    pdf.set_font("", "I", 16)
-    pdf.write(10, "Met Éireann Weathers @ %s" % mil_time_met)
-    pdf.ln()
-    pdf.set_font("", "I", 13)
-    pdf.write(5, met_data["title"])
-    pdf.ln(15)
-    pdf.set_font("", "IU", 10)
-    pdf.write(5, met_data["valid"])
-    pdf.ln()
-    pdf.set_font("", "I", 10)
-    pdf.write(5, met_data["issued"])
-    pdf.ln(15)
+    met_pdf.set_font("", "I", 16)
+    met_pdf.write(10, "Met Éireann Weathers @ %s" % mil_time_met)
+    met_pdf.ln()
+    met_pdf.set_font("", "I", 13)
+    met_pdf.write(5, met_data["title"])
+    met_pdf.ln(15)
+    met_pdf.set_font("", "IU", 10)
+    met_pdf.write(5, met_data["valid"])
+    met_pdf.ln()
+    met_pdf.set_font("", "I", 10)
+    met_pdf.write(5, met_data["issued"])
+    met_pdf.ln(15)
 
     # Iterate the items
     for each_item in met_data["list"]:
-        pdf.set_font("", "B", 12)
-        pdf.write(5, each_item["title"])
-        pdf.ln(8)
-        pdf.set_font("", "", 10)
-        # Check for body and write it
-        if "body" in each_item:
-            pdf.write(5, local_tab + each_item["body"])
-            pdf.ln()
-        # Iterate inside info if present
-        if "info" in each_item:
-            for each_entry in each_item["info"]:
-                pdf.write(5, local_tab + each_entry)
-                pdf.ln()
-        pdf.ln(7)
+
+        # Create full copy of current document to experiment
+        experiment_copy = deepcopy(met_pdf)
+
+        # Keep looping until the bockis in the proper position
+        effective_run = False
+        while True:
+
+            # Save page to check if we broke page
+            page_now = met_pdf.page_no()
+
+            # Determine which document should be changed
+            doc = met_pdf if effective_run else experiment_copy
+
+            doc.set_font("", "B", 12)
+            doc.write(5, each_item["title"])
+            doc.ln(8)
+            doc.set_font("", "", 10)
+            # Check for body and write it
+            if "body" in each_item:
+                doc.write(5, local_tab + each_item["body"])
+                doc.ln()
+            # Iterate inside info if present
+            if "info" in each_item:
+                for each_entry in each_item["info"]:
+                    doc.write(5, local_tab + each_entry)
+                    doc.ln()
+
+            # Check if we broke page
+            if page_now == doc.page_no():
+                # If not we can continue the loop
+                doc.ln(7)
+                met_pdf = doc
+                break
+
+            else:
+                # If it overflew return and add page
+                printn("PDF", "Overflow found rebuilding the block")
+                effective_run = True
+                met_pdf.add_page()
 
     # Create PDF filename
-    pdf_filename = "%sMET_%sBBC_WEATHERS.PDF" % (mil_time_met, mil_time_bbc)
+    met_pdf_filename = "%s_MET_WEATHERS.PDF" % mil_time_met
+    bbc_pdf_filename = "%s_BBC_WEATHERS.PDF" % mil_time_bbc
 
     # Sent file to output
-    pdf.output(pdf_filename, 'F')
+    met_pdf.output(met_pdf_filename, 'F')
+    bbc_pdf.output(bbc_pdf_filename, 'F')
 
-    printn ("INFO", "Created the document")
+    printn ("INFO", "Created the documents")
+
+    return
 
     ### Send email ###
     # Create a multipart message and set headers
