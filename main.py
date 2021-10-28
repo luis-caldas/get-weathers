@@ -108,7 +108,9 @@ def main():
                         [ individual_entry.get_text() for individual_entry in each_entry.find_all("dt") ],
                         [ individual_entry.get_text() for individual_entry in each_entry.find_all("dd") ]
                     ) for value in pair ]
-           } for (each_entry, each_area_out) in [ (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin"] ]
+           } for (each_entry, each_area_out) in [
+               (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin", "trafalgar", "fitzroy"]
+           ]
     ]
 
     printn ("INFO", "Extracted the information for the websites")
@@ -248,8 +250,9 @@ def main():
             )
 
     # Create it
+    left_margin = 20
     pdf = PDF(orientation = 'P', unit = "mm", format="A4")
-    pdf.set_margins(20, 10, 10)
+    pdf.set_margins(left_margin, 10, 10)
     pdf.set_title("Met Eireann @ %s & BBC Weathers @ %s" % (mil_time_met, mil_time_bbc))
     pdf.set_author("Robot")
     pdf.set_creator("Automatic bot from https://github.com/luis-caldas/get-weathers")
@@ -315,11 +318,26 @@ def main():
 
             # Iterate inside info
             for index, item in enumerate(each_place["info"]):
+
+                # Check if even and make it a item
                 if (index % 2 == 0):
-                    doc.write(5, "%s:" % item)
+                    doc.write(5, "%s:" % item.strip())
                     doc.ln()
+
                 else:
-                    doc.write(5, local_tab + item)
+                    # Add fake tab with margin
+                    doc.set_left_margin(left_margin + 10)
+
+                    # Iterate all the lines and print them
+                    all_lines = [each for each in item.splitlines() if each]
+                    for line_i, each_line in enumerate(all_lines):
+                        doc.write(5, each_line.strip())
+                        # Dont add new line at the last run
+                        if (line_i + 1) < len(all_lines):
+                            doc.ln()
+
+                    # Restore margin and add newline
+                    doc.set_left_margin(left_margin)
                     doc.ln()
 
             # Check if we broke page
@@ -401,6 +419,8 @@ def main():
     bbc_pdf.output(bbc_pdf_filename, 'F')
 
     printn ("INFO", "Created the documents")
+
+    return
 
     ### Send email ###
     # Create a multipart message and set headers
