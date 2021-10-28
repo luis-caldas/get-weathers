@@ -399,8 +399,6 @@ def main():
 
     printn ("INFO", "Created the documents")
 
-    return
-
     ### Send email ###
     # Create a multipart message and set headers
     message = MIMEMultipart()
