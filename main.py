@@ -3,6 +3,7 @@
 # Program imports
 import os
 import re
+from glob import glob
 from copy import deepcopy
 from datetime import datetime
 
@@ -31,6 +32,8 @@ WEBSITE_BBC = "https://www.metoffice.gov.uk/weather/specialist-forecasts/coast-a
 
 CACHE_FILE_MET = "/tmp/weather-time-cache-met"
 CACHE_FILE_BBC = "/tmp/weather-time-cache-bbc"
+
+PDF_EXTENSION = "PDF"
 
 # New printing function with timestamps
 def printn(label, message):
@@ -390,8 +393,8 @@ def main():
                 met_pdf.add_page()
 
     # Create PDF filename
-    met_pdf_filename = "%s_MET_WEATHERS.PDF" % mil_time_met
-    bbc_pdf_filename = "%s_BBC_WEATHERS.PDF" % mil_time_bbc
+    met_pdf_filename = "%s_MET_WEATHERS.%s" % (mil_time_met, PDF_EXTENSION)
+    bbc_pdf_filename = "%s_BBC_WEATHERS.%s" % (mil_time_bbc, PDF_EXTENSION)
 
     # Sent file to output
     met_pdf.output(met_pdf_filename, 'F')
@@ -413,24 +416,29 @@ def main():
     # Add body to email
     message.attach(MIMEText(body, "plain"))
 
-    # Open PDF file in binary mode
-    with open(pdf_filename, "rb") as attachment:
-        # Add file as application/octet-stream
-        # Email client can usually download this automatically as attachment
-        part = MIMEBase("application", "octet-stream")
-        part.set_payload(attachment.read())
+    # Iterate the files
+    for each_file in [bbc_pdf_filename, met_pdf_filename]:
 
-    # Encode file in ASCII characters to sent by email
-    encoders.encode_base64(part)
+        # Open PDF file in binary mode
+        with open(each_file, "rb") as attachment:
+            # Add file as application/octet-stream
+            # Email client can usually download this automatically as attachment
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
 
-    # Add header as key/value pair to attachment part
-    part.add_header(
-        "Content-Disposition",
-        "attachment; filename= %s" % pdf_filename,
-    )
+        # Encode file in ASCII characters to sent by email
+        encoders.encode_base64(part)
 
-    # Add attachment to message and convert message to string
-    message.attach(part)
+        # Add header as key/value pair to attachment part
+        part.add_header(
+            "Content-Disposition",
+            "attachment; filename= %s" % each_file,
+        )
+
+        # Add attachment to message
+        message.attach(part)
+
+    # Convert message to string
     text = message.as_string()
 
     # Create a secure SSL context
@@ -443,10 +451,11 @@ def main():
 
     printn ("INFO", "Successfuly Sent the mail")
 
-    # Remove old pdf weather
-    os.remove(pdf_filename)
+    # Remove old pdfs
+    for each_pdf in glob("./*.%s" % PDF_EXTENSION):
+        os.remove(each_pdf)
 
-    printn ("INFO", "Removed old PDF file")
+    printn ("INFO", "Removed old PDF files")
 
     # Store the time last sent email
     with open(CACHE_FILE_MET, "w") as cachefile:
@@ -458,3 +467,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
