@@ -103,7 +103,7 @@ def main():
         find_all("p")[-1].get_text().replace('\n', ' ').strip()
     bbc_data_all = bbc_soup.find("div", {"id": "shipping-forecast-areas"})
     bbc_data_split = [
-        (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin", "trafalgar", "fitzroy"]
+            (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin"]
     ]
     bbc_data["list"] = list()
     # Iterate the list and populate the list
