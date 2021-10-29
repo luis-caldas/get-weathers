@@ -102,19 +102,32 @@ def main():
     bbc_data["valid"] = bbc_data_all_header.find("div", {"id": "sea-forecast-time"}).\
         find_all("p")[-1].get_text().replace('\n', ' ').strip()
     bbc_data_all = bbc_soup.find("div", {"id": "shipping-forecast-areas"})
-    bbc_data["list"] = [
-        {
-            "title": bbc_data_all.find("section", {"id": each_area_out}).find("h2").get_text(),
-            "info": [
-                value for pair in zip(
-                    [ individual_entry.get_text() for individual_entry in each_entry.find_all("dt") ],
-                    [ individual_entry.get_text() for individual_entry in each_entry.find_all("dd") ]
-                ) for value in pair
-            ]
-        } for (each_entry, each_area_out) in [
-            (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin", "trafalgar", "fitzroy"]
-        ]
+    bbc_data_split = [
+        (bbc_data_all.find("section", {"id": each_area}), each_area) for each_area in ["sole", "lundy", "fastnet", "irishsea", "shannon", "rockall", "malin", "trafalgar", "fitzroy"]
     ]
+    bbc_data["list"] = list()
+    # Iterate the list and populate the list
+    for (each_entry, each_area_out) in bbc_data_split:
+        # Create a local disctionary
+        local_dict = {
+            "title": bbc_data_all.find("section", {"id": each_area_out}).find("h2").get_text()
+        }
+        local_dict["info"] = list()
+        # Check if issued time is shouwn and add it if so
+        let_issued_time = each_entry.find("p", {"class": "forecast-issue-time"})
+        if let_issued_time:
+            local_dict["info"].extend([
+                "Time",
+                let_issued_time.get_text().strip()
+            ])
+        local_dict["info"].extend([
+            value for pair in zip(
+                [ individual_entry.get_text() for individual_entry in each_entry.find_all("dt") ],
+                [ individual_entry.get_text() for individual_entry in each_entry.find_all("dd") ]
+            ) for value in pair
+        ])
+        # Add it to master list
+        bbc_data["list"].append(local_dict)
 
     printn ("INFO", "Extracted the information for the websites")
 
@@ -422,8 +435,6 @@ def main():
     bbc_pdf.output(bbc_pdf_filename, 'F')
 
     printn ("INFO", "Created the documents")
-
-    return
 
     ### Send email ###
     # Create a multipart message and set headers
