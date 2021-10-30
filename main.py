@@ -341,20 +341,12 @@ def main():
                     doc.ln()
 
                 else:
-                    # Add fake tab with margin
-                    doc.set_left_margin(left_margin + 10)
-
                     # Iterate all the lines and print them
                     all_lines = [each for each in item.splitlines() if each]
                     for line_i, each_line in enumerate(all_lines):
-                        doc.write(5, each_line.strip())
-                        # Dont add new line at the last run
-                        if (line_i + 1) < len(all_lines):
-                            doc.ln()
+                        doc.write(5, local_tab + each_line.strip())
+                        doc.ln()
 
-                    # Restore margin and add newline
-                    doc.set_left_margin(left_margin)
-                    doc.ln()
 
             # Check if we broke page
             if page_now == doc.page_no():
