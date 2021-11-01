@@ -329,7 +329,7 @@ def main():
 
             doc.set_font("", "BU", 12)
             doc.write(5, each_place["title"])
-            doc.ln(10)
+            doc.ln(8)
             doc.set_font("", "", 10)
 
             # Iterate inside info
@@ -337,21 +337,27 @@ def main():
 
                 # Check if even and make it a item
                 if (index % 2 == 0):
-                    doc.write(5, "%s:" % item.strip())
-                    doc.ln()
+                    doc.write(5, local_tab + "%s: " % item.strip())
 
                 else:
                     # Iterate all the lines and print them
                     all_lines = [each for each in item.splitlines() if each]
                     for line_i, each_line in enumerate(all_lines):
-                        doc.write(5, local_tab + each_line.strip())
-                        doc.ln()
-
+                        doc.write(5, "%s%s" % (
+                            each_line.strip(),
+                            (
+                                ("." if each_line[-1] != "." else "") if
+                                (line_i >= len(all_lines) -1) else
+                                (", " if each_line[-1] not in [":", ",", "."] else " ")
+                            )
+                        ))
+                    # Add newline after block
+                    doc.ln()
 
             # Check if we broke page
             if page_now == doc.page_no():
                 # If not we can continue the loop
-                doc.ln(10)
+                doc.ln(7)
                 bbc_pdf = doc
                 break
 
@@ -427,6 +433,8 @@ def main():
     bbc_pdf.output(bbc_pdf_filename, 'F')
 
     printn ("INFO", "Created the documents")
+
+    return
 
     ### Send email ###
     # Create a multipart message and set headers
