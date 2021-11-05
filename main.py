@@ -70,7 +70,8 @@ def main():
     met_data_all = met_soup.find("div", {"class": "row"}).find("div").find_all("div")
     met_data["footer"] = met_data_all[-1].get_text().strip('\n')
     met_data["valid"] = met_data_all[0].find("p").get_text()
-    met_data["issued"] = met_data_all[6].find_all("p")[-1].get_text()
+    met_issued_found = met_data_all[6].find_all("p")[-1]
+    met_data["issued"] = met_issued_found.get_text() if met_issued_found else "?"
     met_data["list"] = [
         {
             "title": met_data_all[0].find_all("div")[-1].find("h2").get_text(),
