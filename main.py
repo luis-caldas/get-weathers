@@ -49,8 +49,11 @@ def main():
 
     ### Request ###
     # Get pages
-    met_page = requests.get(WEBSITE_MET)
-    bbc_page = requests.get(WEBSITE_BBC)
+    try:
+        met_page = requests.get(WEBSITE_MET)
+        bbc_page = requests.get(WEBSITE_BBC)
+    except Exception as e:
+        printn ("Error", "Exception %s raised when getting pages" % stre.__class__.__name__)
 
     # Check if pages were successful
     if (met_page.status_code != 200):
