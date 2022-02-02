@@ -54,6 +54,7 @@ def main():
         bbc_page = requests.get(WEBSITE_BBC)
     except Exception as e:
         printn ("Error", "Exception %s raised when getting pages" % e.__class__.__name__)
+        return
 
     # Check if pages were successful
     if (met_page.status_code != 200):
