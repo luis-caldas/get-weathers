@@ -154,6 +154,7 @@ def main():
         )
     else:
         printn ("ERROR", bbc_data["valid"])
+        return
 
     if met_time:
         met_datetime_month = datetime.strptime(met_time.group(4), "%B")
@@ -163,6 +164,7 @@ def main():
         )
     else:
         printn ("ERROR", met_data["valid"])
+        return
 
     # Check disparity between time
     time_disparity_hours = abs(divmod((bbc_datetime - met_datetime).total_seconds(), 3600)[0])
