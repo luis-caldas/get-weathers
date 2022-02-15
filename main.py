@@ -137,6 +137,11 @@ def main():
     printn ("INFO", "Extracted the information for the websites")
 
     ### Check times ###
+    # Replace multiple spaces in strings
+    bbc_data["valid"] = re.sub(' +', ' ', bbc_data["valid"]);
+    bbc_data["issued"] = re.sub(' +', ' ', bbc_data["issued"]);
+    met_data["valid"] = re.sub(' +', ' ', met_data["valid"]);
+    met_data["issued"] = re.sub(' +', ' ', met_data["issued"]);
     # Extract website times
     bbc_time = re.search(\
             "For the period ([0-2]\d):([0-5]\d) \(([^ ]*)\) on [^ ]+ (\d+) ([a-zA-Z]{3}) (\d{4}) to", \
