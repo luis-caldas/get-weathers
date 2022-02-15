@@ -53,7 +53,7 @@ def main():
         met_page = requests.get(WEBSITE_MET)
         bbc_page = requests.get(WEBSITE_BBC)
     except Exception as e:
-        printn ("Error", "Exception %s raised when getting pages" % e.__class__.__name__)
+        printn ("ERROR", "Exception %s raised when getting pages" % e.__class__.__name__)
         return
 
     # Check if pages were successful
@@ -76,19 +76,22 @@ def main():
     met_data["valid"] = met_data_all[0].find("p").get_text()
     met_issued_found = met_data_all[6].find_all("p")[-1]
     met_data["issued"] = met_issued_found.get_text() if met_issued_found else "?"
+    met_data_extra = met_data_all[0].find_all("div")
     met_data["list"] = [
         {
-            "title": met_data_all[0].find_all("div")[-1].find("h2").get_text(),
-            "body": met_data_all[0].find_all("div")[-1].find_all("p")[0].get_text(),
-        }, {
             "title": met_data_all[0].find_all("h2")[-1].get_text(),
             "info": [ each_paragraph.get_text() for each_paragraph in \
                     met_data_all[0].find_all("h2")[-1].find_next_siblings("p")[:-1] ]
         }
     ] + [
+        {
+            "title": each_block.find("h2").get_text(),
+            "info": [ each_paragraph.get_text().strip(" \n") for each_paragraph in each_block.find_all("p") ]
+        } for each_block in met_data_extra
+    ] + [
         { "title": each_block.find("h2").get_text(),
-          "info": [ each_paragraph.get_text() for each_paragraph in each_block.find_all("p") ]
-          } for each_block in met_data_all[3:-2]
+          "info": [ each_paragraph.get_text().strip(" \n") for each_paragraph in each_block.find_all("p") ]
+          } for each_block in met_data_all[4:-2]
     ] + [
         {
             "title": met_data_all[-2].find("h2").get_text(),
