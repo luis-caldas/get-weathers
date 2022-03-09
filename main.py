@@ -91,7 +91,7 @@ def main():
     ] + [
         { "title": each_block.find("h2").get_text(),
           "info": [ each_paragraph.get_text().strip(" \n") for each_paragraph in each_block.find_all("p") ]
-          } for each_block in met_data_all[4:-2]
+          } for each_block in met_data_all[3:-2]
     ] + [
         {
             "title": met_data_all[-2].find("h2").get_text(),
