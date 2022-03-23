@@ -74,8 +74,9 @@ def main():
     met_data_all = met_soup.find("div", {"class": "row"}).find("div").find_all("div")
     met_data["footer"] = met_data_all[-1].get_text().strip('\n')
     met_data["valid"] = met_data_all[0].find("p").get_text()
-    met_issued_found = met_data_all[6].find_all("p")[-1]
-    met_data["issued"] = met_issued_found.get_text() if met_issued_found else "?"
+    print(met_data_all, len(met_data_all))
+    met_issued_found = met_data_all[-2].find_all("p")[-1]
+    met_data["issued"] = met_issued_found.get_text() if met_issued_found else "No issued time found"
     met_data_extra = met_data_all[0].find_all("div")
     met_data["list"] = [
         {
