@@ -3,6 +3,7 @@
 # Program imports
 import os
 import re
+import time
 from glob import glob
 from copy import deepcopy
 from datetime import datetime
@@ -74,7 +75,6 @@ def main():
     met_data_all = met_soup.find("div", {"class": "row"}).find("div").find_all("div")
     met_data["footer"] = met_data_all[-1].get_text().strip('\n')
     met_data["valid"] = met_data_all[0].find("p").get_text()
-    print(met_data_all, len(met_data_all))
     met_issued_found = met_data_all[-2].find_all("p")[-1]
     met_data["issued"] = met_issued_found.get_text() if met_issued_found else "No issued time found"
     met_data_extra = met_data_all[0].find_all("div")
@@ -175,17 +175,19 @@ def main():
         printn ("ERROR", met_data["valid"])
         return
 
-    # Check disparity between time
+    # Get time disparity
     time_disparity_hours = abs(divmod((bbc_datetime - met_datetime).total_seconds(), 3600)[0])
-    if (time_disparity_hours > 3):
-        printn ("ERROR", "Time disparity was too big")
-        printn ("INFO", "MET Time is %s" % met_datetime.strftime("%d%H%MZ%b%y").upper())
-        printn ("INFO", "BBC Time is %s" % bbc_datetime.strftime("%d%H%MZ%b%y").upper())
-        return
 
     # Create the full military time
     mil_time_met = met_datetime.strftime("%d%H%MZ%b%y").upper()
     mil_time_bbc = bbc_datetime.strftime("%d%H%MZ%b%y").upper()
+
+    # Check time disparity
+    if (time_disparity_hours > 3):
+        printn ("ERROR", "Time disparity was too big")
+        printn ("INFO", "MET Time is %s" % mil_time_met)
+        printn ("INFO", "BBC Time is %s" % mil_time_bbc)
+        return
 
     # Truth table for updated times
     updated_times = {
