@@ -72,7 +72,7 @@ def main():
     # Extract MET data
     met_data = dict()
     met_data["title"] = met_soup.find("h1").find("span").get_text()
-    met_data_all = met_soup.find("div", {"class": "row"}).find("div").find_all("div")
+    met_data_all = met_soup.find("div", {"id": "vue-container"}).find("div", {"class": "row"}).find("div").find_all("div")
     met_data["footer"] = met_data_all[-1].get_text().strip('\n')
     met_data["valid"] = met_data_all[0].find("p").get_text()
     met_issued_found = met_data_all[-2].find_all("p")[-1]
