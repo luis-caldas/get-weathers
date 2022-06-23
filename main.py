@@ -140,6 +140,9 @@ def main():
 
     printn ("INFO", "Extracted the information for the websites")
 
+    ### Check if this is a email script or not ###
+    is_email = all([SMTP_SERVER, SMTP_USER, SMTP_PASSWORD, SMTP_MAIL_TO])
+
     ### Check times ###
     # Replace multiple spaces in strings
     bbc_data["valid"] = re.sub(' +', ' ', bbc_data["valid"]);
@@ -183,7 +186,7 @@ def main():
     mil_time_bbc = bbc_datetime.strftime("%d%H%MZ%b%y").upper()
 
     # Check time disparity
-    if (time_disparity_hours > 3):
+    if (time_disparity_hours > 3) and is_email:
         printn ("ERROR", "Time disparity was too big")
         printn ("INFO", "MET Time is %s" % mil_time_met)
         printn ("INFO", "BBC Time is %s" % mil_time_bbc)
@@ -218,7 +221,7 @@ def main():
                 updated_times["bbc"] = False
 
     # Check truth table
-    if ((updated_times["met"] == False) or (updated_times["bbc"] == False)):
+    if ((not updated_times["met"]) or (not updated_times["bbc"])) and is_email:
         return
 
     ### Create the full PDF document ###
@@ -451,6 +454,10 @@ def main():
     bbc_pdf.output(bbc_pdf_filename, 'F')
 
     printn ("INFO", "Created the documents")
+
+    ### Stop if not supposed to send email ###
+    if not is_email:
+        return
 
     ### Send email ###
     # Create a multipart message and set headers

@@ -3,3 +3,6 @@
 *pdf
 .*
 !.gitignore
+./dist
+./build
+./*.spec
