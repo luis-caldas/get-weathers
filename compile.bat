@@ -1,0 +1,1 @@
+pyinstaller --clean --onefile --name "Get Weathers" --add-data "fonts" --icon "weather.ico"
