@@ -1,8 +1,13 @@
+# Default hidden files
+.*
+!.gitignore
+
+# PDF creation files
 *pkl
 *PDF
 *pdf
-.*
-!.gitignore
-./dist
-./build
-./*.spec
+
+# Directories for pyinstaller
+/dist
+/build
+/*.spec
