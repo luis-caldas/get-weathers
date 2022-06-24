@@ -45,6 +45,16 @@ def printn(label, message):
         message
     ))
 
+# Added support for pyinstaller paths as well
+def resource_path(relative_path):
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 # Main function
 def main():
 
@@ -299,10 +309,10 @@ def main():
     pdf.add_page()
 
     # Add custom font
-    pdf.add_font("Etoile", "", "./fonts/IosevkaEtoile-Regular.ttf", uni=True)
-    pdf.add_font("Etoile", "B", "./fonts/IosevkaEtoile-Bold.ttf", uni=True)
-    pdf.add_font("Etoile", "I", "./fonts/IosevkaEtoile-Italic.ttf", uni=True)
-    pdf.add_font("Etoile", "BI", "./fonts/IosevkaEtoile-BoldItalic.ttf", uni=True)
+    pdf.add_font("Etoile", "", resource_path(os.path.join("fonts", "IosevkaEtoile-Regular.ttf")), uni=True)
+    pdf.add_font("Etoile", "B", resource_path(os.path.join("fonts", "IosevkaEtoile-Bold.ttf")), uni=True)
+    pdf.add_font("Etoile", "I", resource_path(os.path.join("fonts", "IosevkaEtoile-Italic.ttf")), uni=True)
+    pdf.add_font("Etoile", "BI", resource_path(os.path.join("fonts", "IosevkaEtoile-BoldItalic.ttf")), uni=True)
     pdf.set_font("Etoile")
 
     # Create two PDFs for both documents
@@ -523,5 +533,10 @@ def main():
         cachefile.close()
 
 if __name__ == '__main__':
+    # Execute main code
     main()
+
+    # If running from windows dont end execution
+    if os.name == 'nt':
+        input("Press enter to exit ...")
 
